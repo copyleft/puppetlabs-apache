@@ -5,4 +5,12 @@
   ServerLimit         <%= @serverlimit %>
   MaxClients          <%= @maxclients %>
   MaxRequestsPerChild <%= @maxrequestsperchild %>
+<%- if @kernelversion >= '3.5.0' -%>
+  <%- if @limituidrange -%>
+  LimitUIDRange <%= @limituidrange %>
+  <%- end -%>
+  <%- if @limitgidrange -%>
+  LimitGIDRange <%= @limitgidrange %>
+  <%- end -%>
+<%- end -%>
 </IfModule>

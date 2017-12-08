@@ -17,13 +17,5 @@
      <%- if @itk["nice"] -%>
      NiceValue <%= @itk["nice"] %>
      <%- end -%>
-     <%- if @kernelversion >= '3.5.0' -%>
-       <%- if @itk["limituidrange"] -%>
-     LimitUIDRange <%= @itk["limituidrange"] %>
-       <%- end -%>
-       <%- if @itk["limitgidrange"] -%>
-     LimitGIDRange <%= @itk["limitgidrange"] %>
-       <%- end -%>
-     <%- end -%>
   </IfModule>
 <% end -%>
