@@ -43,7 +43,7 @@ define apache::vhost(
   Boolean $default_vhost                                                            = false,
   $servername                                                                       = $name,
   $serveraliases                                                                    = [],
-  $options                                                                          = ['Indexes','FollowSymLinks','MultiViews'],
+  $options                                                                          = ['FollowSymLinks','MultiViews'],
   $override                                                                         = ['None'],
   $directoryindex                                                                   = '',
   $vhost_name                                                                       = '*',
