@@ -50,6 +50,7 @@
 [`apache::mod::authn_dbd`]: #class-apachemodauthn_dbd
 [`apache::mod::authnz_ldap`]: #class-apachemodauthnz_ldap
 [`apache::mod::cluster`]: #class-apachemodcluster
+[`apache::mod::data]: #class-apachemoddata
 [`apache::mod::disk_cache`]: #class-apachemoddisk_cache
 [`apache::mod::dumpio`]: #class-apachemoddumpio
 [`apache::mod::event`]: #class-apachemodevent
@@ -65,6 +66,7 @@
 [`apache::mod::proxy_balancer`]: #class-apachemodproxybalancer
 [`apache::mod::proxy_fcgi`]: #class-apachemodproxy_fcgi
 [`apache::mod::proxy_html`]: #class-apachemodproxy_html
+[`apache::mod::python`]: #class-apachemodpython
 [`apache::mod::security`]: #class-apachemodsecurity
 [`apache::mod::shib`]: #class-apachemodshib
 [`apache::mod::ssl`]: #class-apachemodssl
@@ -144,6 +146,7 @@
 [`keepalive` parameter]: #keepalive
 [`keepalive_timeout`]: #keepalive_timeout
 [`limitreqfieldsize`]: https://httpd.apache.org/docs/current/mod/core.html#limitrequestfieldsize
+[`limitreqfields`]: http://httpd.apache.org/docs/current/mod/core.html#limitrequestfields
 
 [`lib`]: #lib
 [`lib_path`]: #lib_path
@@ -167,6 +170,7 @@
 [`mod_alias`]: https://httpd.apache.org/docs/current/mod/mod_alias.html
 [`mod_auth_cas`]: https://github.com/Jasig/mod_auth_cas
 [`mod_auth_kerb`]: http://modauthkerb.sourceforge.net/configure.html
+[`mod_auth_gssapi`]: https://github.com/modauthgssapi/mod_auth_gssapi
 [`mod_authnz_external`]: https://github.com/phokz/mod-auth-external
 [`mod_auth_dbd`]: http://httpd.apache.org/docs/current/mod/mod_authn_dbd.html
 [`mod_auth_mellon`]: https://github.com/UNINETT/mod_auth_mellon
@@ -188,6 +192,7 @@
 [`mod_proxy`]: https://httpd.apache.org/docs/current/mod/mod_proxy.html
 [`mod_proxy_balancer`]: https://httpd.apache.org/docs/current/mod/mod_proxy_balancer.html
 [`mod_reqtimeout`]: https://httpd.apache.org/docs/current/mod/mod_reqtimeout.html
+[`mod_python`]: http://modpython.org/
 [`mod_rewrite`]: https://httpd.apache.org/docs/current/mod/mod_rewrite.html
 [`mod_security`]: https://www.modsecurity.org/
 [`mod_ssl`]: https://httpd.apache.org/docs/current/mod/mod_ssl.html
@@ -262,6 +267,8 @@
 [template]: http://docs.puppet.com/puppet/latest/reference/lang_template.html
 [`TraceEnable`]: https://httpd.apache.org/docs/current/mod/core.html#traceenable
 
+[`UseCanonicalName`]: https://httpd.apache.org/docs/current/mod/core.html#usecanonicalname
+
 [`verify_config`]: #verify_config
 [`vhost`]: #defined-type-apachevhost
 [`vhost_dir`]: #vhost_dir
@@ -294,12 +301,15 @@
     - [Contributing to the apache module][Contributing]
     - [Running tests - A quick guide][Running tests]
 
+<a id="module-description"></a>
 ## Module description
 
 [Apache HTTP Server][] (also called Apache HTTPD, or simply Apache) is a widely used web server. This [Puppet module][] simplifies the task of creating configurations to manage Apache servers in your infrastructure. It can configure and manage a range of virtual host setups and provides a streamlined way to install and configure [Apache modules][].
 
+<a id="setup"></a>
 ## Setup
 
+<a id="apache-affects"></a>
 ### What the apache module affects:
 
 - Configuration files and directories (created and written to)
@@ -316,6 +326,7 @@ On Gentoo, this module depends on the [`gentoo/puppet-portage`][] Puppet module.
 >
 >To temporarily disable full Puppet management, set the [`purge_configs`][] parameter in the [`apache`][] class declaration to false. We recommend this only as a temporary means of saving and relocating customized configurations.
 
+<a id="beginning-with-apache"></a>
 ### Beginning with Apache
 
 To have Puppet install Apache with the default parameters, declare the [`apache`][] class:
@@ -344,8 +355,10 @@ class { 'apache':
 
 > **Note**: When `default_vhost` is set to `false`, you have to add at least one `apache::vhost` resource or Apache will not start. To establish a default virtual host, either set the `default_vhost` in the `apache` class or use the [`apache::vhost`][] defined type. You can also configure additional specific virtual hosts with the [`apache::vhost`][] defined type.
 
+<a id="usage"></a>
 ## Usage
 
+<a id="configuring-virtual-hosts"></a>
 ### Configuring virtual hosts
 
 The default [`apache`][] class sets up a virtual host on port 80, listening on all interfaces and serving the [`docroot`][] parameter's default directory of `/var/www`.
@@ -362,7 +375,7 @@ apache::vhost { 'vhost.example.com':
 
 See the [`apache::vhost`][] defined type's reference for a list of all virtual host parameters.
 
-> **Note**: Apache processes virtual hosts in alphabetical order, and server administrators can prioritize Apache's virtual host processing by prefixing a virtual host's configuration file name with a number. The [`apache::vhost`][] defined type applies a default [`priority`][] of 15, which Puppet interprets by prefixing the virtual host's file name with `15-`. This all means that if multiple sites have the same priority, or if you disable priority numbers by setting the `priority` parameter's value to false, Apache still processes virtual hosts in alphabetical order.
+> **Note**: Apache processes virtual hosts in alphabetical order, and server administrators can prioritize Apache's virtual host processing by prefixing a virtual host's configuration file name with a number. The [`apache::vhost`][] defined type applies a default [`priority`][] of 25, which Puppet interprets by prefixing the virtual host's file name with `25-`. This means that if multiple sites have the same priority, or if you disable priority numbers by setting the `priority` parameter's value to false, Apache still processes virtual hosts in alphabetical order.
 
 To configure user and group ownership for `docroot`, use the [`docroot_owner`][] and [`docroot_group`][] parameters:
 
@@ -713,6 +726,7 @@ apache::mod { 'mod_authnz_external': }
 
 There are several optional parameters you can specify when defining Apache modules this way. See the [defined type's reference][`apache::mod`] for details.
 
+<a id="configuring-fastcgi-servers-to-handle-php-files"></a>
 ### Configuring FastCGI servers to handle PHP files
 
 Add the [`apache::fastcgi::server`][] defined type to allow [FastCGI][] servers to handle requests for specific files. For example, the following defines a FastCGI server at 127.0.0.1 (localhost) on port 9000 to handle PHP requests:
@@ -738,6 +752,7 @@ apache::vhost { 'www':
 }
 ```
 
+<a id="load-balancing-examples"></a> 
 ### Load balancing examples
 
 Apache supports load balancing across groups of servers through the [`mod_proxy`][] Apache module. Puppet supports configuring Apache load balancing groups (also known as balancer clusters) through the [`apache::balancer`][] and [`apache::balancermember`][] defined types.
@@ -785,6 +800,7 @@ apache::balancer { 'puppet01':
 
 Load balancing scheduler algorithms (`lbmethod`) are listed [in mod_proxy_balancer documentation](https://httpd.apache.org/docs/current/mod/mod_proxy_balancer.html).
 
+<a id="reference"></a> 
 ## Reference
 
 - [**Public classes**](#public-classes)
@@ -1066,7 +1082,7 @@ Default: `false`.
 
 Sets the group ID that owns any Apache processes spawned to answer requests.
 
-By default, Puppet attempts to manage this group as a resource under the `apache` class, determining the group based on the operating system as detected by the [`apache::params`][] class. To to prevent the group resource from being created and use a group created by another Puppet module, set the [`manage_group`][] parameter's value to `false`.
+By default, Puppet attempts to manage this group as a resource under the `apache` class, determining the group based on the operating system as detected by the [`apache::params`][] class. To prevent the group resource from being created and use a group created by another Puppet module, set the [`manage_group`][] parameter's value to `false`.
 
 > **Note**: Modifying this parameter only changes the group ID that Apache uses to spawn child processes to access resources. It does not change the user that owns the parent server process.
 
@@ -1095,7 +1111,7 @@ Determines whether to enable persistent HTTP connections with the [`KeepAlive`][
 
 Values: 'Off', 'On'.
 
-Default: 'Off'.
+Default: 'On'.
 
 ##### `keepalive_timeout`
 
@@ -1204,6 +1220,21 @@ Default: Depends on operating system.
 - **FreeBSD**: `/usr/local/etc/apache22/Modules`
 - **Gentoo**: `/etc/apache2/modules.d`
 - **Red Hat**: `/etc/httpd/conf.d`
+
+##### `mod_libs`
+
+Allows the user to override default module library names.
+
+```puppet
+include apache::params
+class { 'apache':
+  mod_libs => merge($::apache::params::mod_libs, {
+    'wsgi' => 'mod_wsgi_python3.so',
+  })
+}
+```
+
+Hash. Default: `$apache::params::mod_libs`
 
 ##### `mod_packages`
 
@@ -1326,7 +1357,7 @@ Default: 'On'.
 
 Controls how much information Apache sends to the browser about itself and the operating system, via Apache's [`ServerTokens`][] directive.
 
-Default: 'OS'.
+Default: 'Prod'.
 
 ##### `service_enable`
 
@@ -1370,6 +1401,22 @@ Values: a command to restart the Apache service. The default setting uses the [d
 
 Default: `undef`.
 
+##### `ssl_cert`
+
+This enables the user to specify a specific SSLCertificateFile.
+
+For more information see: [SSLCertificateFile](https://httpd.apache.org/docs/current/mod/mod_ssl.html#SSLCertificateFile)
+
+Default: `undef.`
+
+##### `ssl_key`
+This enables the user to specify a specific SSLCertificateKey.
+
+For more information see: [SSLCertificateKey](https://httpd.apache.org/docs/current/mod/mod_ssl.html#SSLCertificateKeyFile)
+
+Default: `undef`.
+
+
 ##### `ssl_ca`
 
 Specifies the SSL certificate authority. [SSLCACertificateFile](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslcacertificatefile) to use to verify certificate used in ssl client authentication.
@@ -1392,6 +1439,14 @@ Controls how Apache handles `TRACE` requests (per [RFC 2616][]) via the [`TraceE
 Values: 'Off', 'On'.
 
 Default: 'On'.
+
+##### `use_canonical_name`
+
+Controls Apache's [`UseCanonicalName`][] directive which controls how Apache handles self-referential URLs. If not specified, this parameter omits the declaration from the server's configuration and uses Apache's default setting of 'off'.
+
+Values: 'On', 'on', 'Off', 'off', 'DNS', 'dns'.
+
+Default: `undef`.
 
 ##### `use_systemd`
 
@@ -1458,7 +1513,9 @@ To prevent Puppet from managing the user, set the [`manage_user`][] parameter to
 
 ##### `apache_name`
 
-The name of the Apache package to install. If you are using a non-standard Apache package, such as those from Red Hat's software collections, you might need to override the default setting.
+The name of the Apache package to install. If you are using a non-standard Apache package you might need to override the default setting.
+
+For CentOS/RHEL Software Collections (SCL), you can also use `apache::version::scl_httpd_version`.
 
 Default: Depends on the user set by [`apache::params`][] class, based on your operating system:
 
@@ -1502,6 +1559,12 @@ Default: Depends on operating system:
 - **Gentoo**: 'access.log'
 - **Red Hat**: 'access_log'
 - **Suse**: 'access.log'
+
+##### `limitreqfields`
+
+The [`limitreqfields`][] parameter sets the maximum number of request header fields in an HTTP request. This directive gives the server administrator greater control over abnormal client request behavior, which may be useful for avoiding some forms of denial-of-service attacks. The value should be increased if normal clients see an error response from the server that indicates too many fields were sent in the request.
+
+Default: '100'
 
 #### Class: `apache::dev`
 
@@ -1561,6 +1624,7 @@ The following Apache modules have supported classes, many of which allow for par
 * `auth_cas`\* (see [`apache::mod::auth_cas`][])
 * `auth_mellon`\* (see [`apache::mod::auth_mellon`][])
 * `auth_kerb`
+* `auth_gssapi`
 * `authn_core`
 * `authn_dbd`\* (see [`apache::mod::authn_dbd`][])
 * `authn_file`
@@ -1573,6 +1637,7 @@ The following Apache modules have supported classes, many of which allow for par
 * `cgi`
 * `cgid`
 * `cluster` (see [`apache::mod::cluster`][])
+* `data`
 * `dav`
 * `dav_fs`
 * `dav_svn`\*
@@ -1615,7 +1680,7 @@ The following Apache modules have supported classes, many of which allow for par
 * `proxy_balancer`
 * `proxy_html` (see [`apache::mod::proxy_html`][])
 * `proxy_http`
-* `python`
+* `python` (see [`apache::mod::python`][])
 * `reqtimeout`
 * `remoteip`\*
 * `rewrite`
@@ -1674,18 +1739,26 @@ class {'::apache::mod::disk_cache':
 }
 ```
 
-##### Class: `apache::mod::diskio`
+To specify cache ignore headers, pass a string to the `cache_ignore_headers` parameter.
 
-Installs and configures [`mod_diskio`][].
+``` puppet
+class {'::apache::mod::disk_cache':
+  cache_ignore_headers => "Set-Cookie",
+}
+```
+
+##### Class: `apache::mod::dumpio`
+
+Installs and configures [`mod_dumpio`][].
 
 ```puppet
 class{'apache':
   default_mods => false,
   log_level    => 'dumpio:trace7',
 }
-class{'apache::mod::diskio':
-  disk_io_input  => 'On',
-  disk_io_output => 'Off',
+class{'apache::mod::dumpio':
+  dump_io_input  => 'On',
+  dump_io_output => 'Off',
 }
 ```
 
@@ -1938,7 +2011,7 @@ Installs `mod_authnz_ldap` and uses the `authnz_ldap.conf.erb` template to gener
 
 ##### Class: `apache::mod::cluster`
 
-**Note**: There is no official package available for `mod_cluster`, so you must make it available outside of the apache module. Binaries can be found at http://mod-cluster.jboss.org/
+**Note**: There is no official package available for `mod_cluster`, so you must make it available outside of the apache module. Binaries can be found at [here](http://mod-cluster.jboss.org/).
 
 ``` puppet
 class { '::apache::mod::cluster':
@@ -1991,9 +2064,9 @@ Installs and configures [`mod_deflate`][].
 
 **Parameters**:
 
-* `types`: An [array][] of [MIME types][MIME `content*type`] to be deflated.
+* `types`: An [array][] of [MIME types][MIME `content-type`] to be deflated.
 
-  Default: ['text/html text/plain text/xml', 'text/css', 'application/x*javascript application/javascript application/ecmascript', 'application/rss+xml', 'application/json'].
+  Default: ['text/html text/plain text/xml', 'text/css', 'application/x-javascript application/javascript application/ecmascript', 'application/rss+xml', 'application/json'].
 
 * `notes`: A [Hash][] where the key represents the type and the value represents the note name.
 
@@ -2015,9 +2088,9 @@ Installs [`mod_expires`][] and uses the `expires.conf.erb` template to generate 
 
   Default: `undef`.
 
-* `expires_by_type`: Describes a set of [MIME `content*type`][] and their expiration times.
+* `expires_by_type`: Describes a set of [MIME `content-type`][] and their expiration times.
 
-  Values: An [array][] of [Hashes][Hash], with each Hash's key a valid MIME `content*type` (i.e. 'text/json') and its value following valid [interval syntax][].
+  Values: An [array][] of [Hashes][Hash], with each Hash's key a valid MIME `content-type` (i.e. 'text/json') and its value following valid [interval syntax][].
 
   Default: `undef`.
 
@@ -2149,6 +2222,54 @@ Installs and manages [`mod_info`][], which provides a comprehensive overview of 
 
   Default: `true`.
 
+##### Class: `apache::mod::itk`
+
+Installs and manages [`mod_itk`][], which is an (MPM) that is loaded and configured for the HTTPD process. [official documentation](http://mpm-itk.sesse.net/)
+
+**Parameters**:
+
+* `startservers`: The number of child server processes created on startup.
+
+  Values: Integer.
+
+  Default: `8`.
+
+* `minspareservers`: The desired minimum number of idle child server processes.
+
+  Values: Integer.
+
+  Default: `5`.
+
+* `maxspareservers`: The desired maximum number of idle child server processes.
+
+  Values: Integer.
+
+  Default: `20`.
+
+* `serverlimit`: The maximum configured value for MaxRequestWorkers for the lifetime of the Apache httpd process.
+
+  Values: Integer.
+
+  Default: `256`.
+
+* `maxclients`: The limit on the number of simultaneous requests that will be served.
+
+  Values: Integer.
+
+  Default: `256`.
+
+* `maxrequestsperchild`: The limit on the number of connections that an individual child server process will handle.
+
+  Values: Integer.
+
+  Default: `4000`.
+
+* `enablecapabilities`: Drop most root capabilities in the parent process, and instead run as the user given by the User/Group directives with some extra capabilities (in particular setuid). Somewhat more secure, but can cause problems when serving from filesystems that do not honor capabilities, such as NFS.
+
+  Values: Boolean.
+
+  Default: `undef`.
+
 ##### Class: `apache::mod::jk`
 
 Installs and manages `mod_jk`, a connector for Apache httpd redirection to old versions of TomCat and JBoss
@@ -2157,16 +2278,18 @@ Installs and manages `mod_jk`, a connector for Apache httpd redirection to old v
 
 ``` puppet
 class { '::apache::mod::jk':
-  ip           = '192.168.2.15',
-  workers_file = 'conf/workers.properties',
-  mount_file   = 'conf/uriworkermap.properties',
-  shm_file     = 'run/jk.shm',
-  shm_size     = '50M',
-  $workers_file_content = {
+  ip                   => '192.168.2.15',
+  workers_file         => 'conf/workers.properties',
+  mount_file           => 'conf/uriworkermap.properties',
+  shm_file             => 'run/jk.shm',
+  shm_size             => '50M',
+  workers_file_content => {
     <Content>
   },
 }
 ```
+
+See [templates/mod/jk/workers.properties.erb](templates/mod/jk/workers.properties.erb) for more information.
 
 **Parameters within `apache::mod::jk`**:
 
@@ -2199,14 +2322,14 @@ Default: '80'
 **workers\_file\_content**
 
 Each directive has the format `worker.<Worker name>.<Property>=<Value>`. This maps as a hash of hashes, where the outer hash specifies workers, and each inner hash specifies each worker properties and values.
-Plus, there are two global directives, 'worker.list' and 'worker.mantain'
-For example, the workers file below:
+Plus, there are two global directives, 'worker.list' and 'worker.maintain'
+For example, the workers file below should be parameterized as Figure 1:
 
-```
+``` puppet
 worker.list = status
 worker.list = some_name,other_name
 
-worker.mantain = 60
+worker.maintain = 60
 
 # Optional comment
 worker.some_name.type=ajp13
@@ -2217,18 +2340,18 @@ worker.other_name.type=ajp12 (why would you?)
 worker.other_name.socket_keepalive=false
 ```
 
-Should be parameterized as:
+**Figure 1:**
 
-```
+``` puppet
 $workers_file_content = {
-  worker_lists   => ['status', 'some_name,other_name'],
-  worker_mantain => '60',
-  some_name      => {
+  worker_lists    => ['status', 'some_name,other_name'],
+  worker_maintain => '60',
+  some_name       => {
     comment          => 'Optional comment',
     type             => 'ajp13',
     socket_keepalive => 'true',
   },
-  other_name     => {
+  other_name      => {
     comment          => 'I just like comments',
     type             => 'ajp12',
     socket_keepalive => 'false',
@@ -2238,10 +2361,12 @@ $workers_file_content = {
 
 **mount\_file\_content**
 
-Each directive has the format `<URI> = <Worker name>`. This maps as a hash of hashes, where the outer hash specifies workers, and each inner hash contains two items: uri_list - an array with URIs to be mapped to the worker - and comment - an optional string with a comment for the worker.
-For example, the mount file below:
+Each directive has the format `<URI> = <Worker name>`. This maps as a hash of hashes, where the outer hash specifies workers, and each inner hash contains two items: 
+* uri_list&mdash;an array with URIs to be mapped to the worker 
+* comment&mdash;an optional string with a comment for the worker.
+For example, the mount file below should be parameterized as Figure 2:
 
-```
+``` puppet
 # Worker 1
 /context_1/ = worker_1
 /context_1/* = worker_1
@@ -2252,9 +2377,9 @@ For example, the mount file below:
 /context_2/* = worker_2
 ```
 
-Should be parameterized as:
+**Figure 2:**
 
-```
+``` puppet
 $mount_file_content = {
   worker_1 => {
     uri_list => ['/context_1/', '/context_1/*'],
@@ -2275,17 +2400,17 @@ Depending on how these files are specified, the class creates their final path d
 
 Examples (RHEL 6):
 
-```
+``` puppet
 shm_file => 'shm_file'
 # Ends up in
 $shm_path = '/var/log/httpd/shm_file'
 ```
-```
+``` puppet
 shm_file => '/run/shm_file'
 # Ends up in
 $shm_path = '/run/shm_file'
 ```
-```
+``` puppet
 shm_file => '"|rotatelogs /var/log/httpd/mod_jk.log.%Y%m%d 86400 -180"'
 # Ends up in
 $shm_path = '"|rotatelogs /var/log/httpd/mod_jk.log.%Y%m%d 86400 -180"'
@@ -2316,83 +2441,83 @@ The current set of server configurations settings were taken directly from the [
 |mod_package|undef|n/a|||
 |mod_package_ensure|undef|n/a|||
 |mod_path|undef|n/a|||
-|passenger_allow_encoded_slashes|undef|[`PassengerAllowEncodedSlashes`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAllowEncodedSlashes)|server-config virutal-host htaccess directory ||
-|passenger_app_env|undef|[`PassengerAppEnv`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppEnv)|server-config virutal-host htaccess directory ||
-|passenger_app_group_name|undef|[`PassengerAppGroupName`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppGroupName)|server-config virutal-host htaccess directory ||
-|passenger_app_root|undef|[`PassengerAppRoot`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppRoot)|server-config virutal-host htaccess directory ||
-|passenger_app_type|undef|[`PassengerAppType`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppType)|server-config virutal-host htaccess directory ||
-|passenger_base_uri|undef|[`PassengerBaseURI`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerBaseURI)|server-config virutal-host htaccess directory ||
-|passenger_buffer_response|undef|[`PassengerBufferResponse`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerBufferResponse)|server-config virutal-host htaccess directory ||
-|passenger_buffer_upload|undef|[`PassengerBufferUpload`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerBufferUpload)|server-config virutal-host htaccess directory ||
-|passenger_concurrency_model|undef|[`PassengerConcurrencyModel`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerConcurrencyModel)|server-config virutal-host htaccess directory ||
+|passenger_allow_encoded_slashes|undef|[`PassengerAllowEncodedSlashes`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAllowEncodedSlashes)|server-config virtual-host htaccess directory ||
+|passenger_app_env|undef|[`PassengerAppEnv`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppEnv)|server-config virtual-host htaccess directory ||
+|passenger_app_group_name|undef|[`PassengerAppGroupName`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppGroupName)|server-config virtual-host htaccess directory ||
+|passenger_app_root|undef|[`PassengerAppRoot`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppRoot)|server-config virtual-host htaccess directory ||
+|passenger_app_type|undef|[`PassengerAppType`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerAppType)|server-config virtual-host htaccess directory ||
+|passenger_base_uri|undef|[`PassengerBaseURI`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerBaseURI)|server-config virtual-host htaccess directory ||
+|passenger_buffer_response|undef|[`PassengerBufferResponse`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerBufferResponse)|server-config virtual-host htaccess directory ||
+|passenger_buffer_upload|undef|[`PassengerBufferUpload`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerBufferUpload)|server-config virtual-host htaccess directory ||
+|passenger_concurrency_model|undef|[`PassengerConcurrencyModel`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerConcurrencyModel)|server-config virtual-host htaccess directory ||
 |passenger_conf_file|$::apache::params::passenger_conf_file|n/a|||
 |passenger_conf_package_file|$::apache::params::passenger_conf_package_file|n/a|||
 |passenger_data_buffer_dir|undef|[`PassengerDataBufferDir`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDataBufferDir)|server-config ||
 |passenger_debug_log_file|undef|PassengerDebugLogFile|server-config |This option has been renamed in version 5.0.5 to PassengerLogFile.|
-|passenger_debugger|undef|[`PassengerDebugger`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDebugger)|server-config virutal-host htaccess directory ||
+|passenger_debugger|undef|[`PassengerDebugger`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDebugger)|server-config virtual-host htaccess directory ||
 |passenger_default_group|undef|[`PassengerDefaultGroup`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDefaultGroup)|server-config ||
 |passenger_default_ruby|$::apache::params::passenger_default_ruby|[`PassengerDefaultRuby`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDefaultRuby)|server-config ||
 |passenger_default_user|undef|[`PassengerDefaultUser`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDefaultUser)|server-config ||
 |passenger_disable_security_update_check|undef|[`PassengerDisableSecurityUpdateCheck`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerDisableSecurityUpdateCheck)|server-config ||
-|passenger_enabled|undef|[`PassengerEnabled`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerEnabled)|server-config virutal-host htaccess directory ||
-|passenger_error_override|undef|[`PassengerErrorOverride`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerErrorOverride)|server-config virutal-host htaccess directory ||
+|passenger_enabled|undef|[`PassengerEnabled`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerEnabled)|server-config virtual-host htaccess directory ||
+|passenger_error_override|undef|[`PassengerErrorOverride`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerErrorOverride)|server-config virtual-host htaccess directory ||
 |passenger_file_descriptor_log_file|undef|[`PassengerFileDescriptorLogFile`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerFileDescriptorLogFile)|server-config ||
 |passenger_fly_with|undef|[`PassengerFlyWith`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerFlyWith)|server-config ||
-|passenger_force_max_concurrent_requests_per_process|undef|[`PassengerForceMaxConcurrentRequestsPerProcess`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerForceMaxConcurrentRequestsPerProcess)|server-config virutal-host htaccess directory ||
-|passenger_friendly_error_pages|undef|[`PassengerFriendlyErrorPages`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerFriendlyErrorPages)|server-config virutal-host htaccess directory ||
-|passenger_group|undef|[`PassengerGroup`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerGroup)|server-config virutal-host directory ||
-|passenger_high_performance|undef|[`PassengerHighPerformance`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerHighPerformance)|server-config virutal-host htaccess directory ||
+|passenger_force_max_concurrent_requests_per_process|undef|[`PassengerForceMaxConcurrentRequestsPerProcess`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerForceMaxConcurrentRequestsPerProcess)|server-config virtual-host htaccess directory ||
+|passenger_friendly_error_pages|undef|[`PassengerFriendlyErrorPages`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerFriendlyErrorPages)|server-config virtual-host htaccess directory ||
+|passenger_group|undef|[`PassengerGroup`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerGroup)|server-config virtual-host directory ||
+|passenger_high_performance|undef|[`PassengerHighPerformance`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerHighPerformance)|server-config virtual-host htaccess directory ||
 |passenger_installed_version|undef|n/a| |If set, will enable version checking of the passenger options against the value set.|
 |passenger_instance_registry_dir|undef|[`PassengerInstanceRegistryDir`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerInstanceRegistryDir)|server-config ||
-|passenger_load_shell_envvars|undef|[`PassengerLoadShellEnvvars`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerLoadShellEnvvars)|server-config virutal-host htaccess directory ||
+|passenger_load_shell_envvars|undef|[`PassengerLoadShellEnvvars`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerLoadShellEnvvars)|server-config virtual-host htaccess directory ||
 |passenger_log_file|undef|[`PassengerLogFile`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerLogFile)|server-config ||
 |passenger_log_level|undef|[`PassengerLogLevel`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerLogLevel)|server-config ||
-|passenger_lve_min_uid|undef|[`PassengerLveMinUid`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerLveMinUid)|server-config virutal-host ||
-|passenger_max_instances|undef|[`PassengerMaxInstances`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxInstances)|server-config virutal-host htaccess directory ||
+|passenger_lve_min_uid|undef|[`PassengerLveMinUid`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerLveMinUid)|server-config virtual-host ||
+|passenger_max_instances|undef|[`PassengerMaxInstances`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxInstances)|server-config virtual-host htaccess directory ||
 |passenger_max_instances_per_app|undef|[`PassengerMaxInstancesPerApp`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxInstancesPerApp)|server-config ||
 |passenger_max_pool_size|undef|[`PassengerMaxPoolSize`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxPoolSize)|server-config ||
-|passenger_max_preloader_idle_time|undef|[`PassengerMaxPreloaderIdleTime`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxPreloaderIdleTime)|server-config virutal-host ||
-|passenger_max_request_queue_size|undef|[`PassengerMaxRequestQueueSize`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxRequestQueueSize)|server-config virutal-host htaccess directory ||
-|passenger_max_request_time|undef|[`PassengerMaxRequestTime`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxRequestTime)|server-config virutal-host htaccess directory ||
-|passenger_max_requests|undef|[`PassengerMaxRequests`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxRequests)|server-config virutal-host htaccess directory ||
-|passenger_memory_limit|undef|[`PassengerMemoryLimit`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMemoryLimit)|server-config virutal-host htaccess directory ||
-|passenger_meteor_app_settings|undef|[`PassengerMeteorAppSettings`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMeteorAppSettings)|server-config virutal-host htaccess directory ||
-|passenger_min_instances|undef|[`PassengerMinInstances`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMinInstances)|server-config virutal-host htaccess directory ||
-|passenger_nodejs|undef|[`PassengerNodejs`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerNodejs)|server-config virutal-host htaccess directory ||
+|passenger_max_preloader_idle_time|undef|[`PassengerMaxPreloaderIdleTime`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxPreloaderIdleTime)|server-config virtual-host ||
+|passenger_max_request_queue_size|undef|[`PassengerMaxRequestQueueSize`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxRequestQueueSize)|server-config virtual-host htaccess directory ||
+|passenger_max_request_time|undef|[`PassengerMaxRequestTime`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxRequestTime)|server-config virtual-host htaccess directory ||
+|passenger_max_requests|undef|[`PassengerMaxRequests`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMaxRequests)|server-config virtual-host htaccess directory ||
+|passenger_memory_limit|undef|[`PassengerMemoryLimit`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMemoryLimit)|server-config virtual-host htaccess directory ||
+|passenger_meteor_app_settings|undef|[`PassengerMeteorAppSettings`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMeteorAppSettings)|server-config virtual-host htaccess directory ||
+|passenger_min_instances|undef|[`PassengerMinInstances`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerMinInstances)|server-config virtual-host htaccess directory ||
+|passenger_nodejs|undef|[`PassengerNodejs`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerNodejs)|server-config virtual-host htaccess directory ||
 |passenger_pool_idle_time|undef|[`PassengerPoolIdleTime`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerPoolIdleTime)|server-config ||
-|passenger_pre_start|undef|[`PassengerPreStart`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerPreStart)|server-config virutal-host ||
-|passenger_python|undef|[`PassengerPython`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerPython)|server-config virutal-host htaccess directory ||
-|passenger_resist_deployment_errors|undef|[`PassengerResistDeploymentErrors`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerResistDeploymentErrors)|server-config virutal-host htaccess directory ||
-|passenger_resolve_symlinks_in_document_root|undef|[`PassengerResolveSymlinksInDocumentRoot`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerResolveSymlinksInDocumentRoot)|server-config virutal-host htaccess directory ||
+|passenger_pre_start|undef|[`PassengerPreStart`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerPreStart)|server-config virtual-host ||
+|passenger_python|undef|[`PassengerPython`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerPython)|server-config virtual-host htaccess directory ||
+|passenger_resist_deployment_errors|undef|[`PassengerResistDeploymentErrors`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerResistDeploymentErrors)|server-config virtual-host htaccess directory ||
+|passenger_resolve_symlinks_in_document_root|undef|[`PassengerResolveSymlinksInDocumentRoot`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerResolveSymlinksInDocumentRoot)|server-config virtual-host htaccess directory ||
 |passenger_response_buffer_high_watermark|undef|[`PassengerResponseBufferHighWatermark`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerResponseBufferHighWatermark)|server-config ||
-|passenger_restart_dir|undef|[`PassengerRestartDir`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerRestartDir)|server-config virutal-host htaccess directory ||
+|passenger_restart_dir|undef|[`PassengerRestartDir`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerRestartDir)|server-config virtual-host htaccess directory ||
 |passenger_rolling_restarts|undef|[`PassengerRollingRestarts`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerRollingRestarts)|server-config virutal-host htaccess directory ||
 |passenger_root|$::apache::params::passenger_root|[`PassengerRoot`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerRoot)|server-config ||
 |passenger_ruby|$::apache::params::passenger_ruby|[`PassengerRuby`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerRuby)|server-config virutal-host htaccess directory ||
 |passenger_security_update_check_proxy|undef|[`PassengerSecurityUpdateCheckProxy`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerSecurityUpdateCheckProxy)|server-config ||
 |passenger_show_version_in_header|undef|[`PassengerShowVersionInHeader`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerShowVersionInHeader)|server-config ||
 |passenger_socket_backlog|undef|[`PassengerSocketBacklog`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerSocketBacklog)|server-config ||
-|passenger_spawn_method|undef|[`PassengerSpawnMethod`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerSpawnMethod)|server-config virutal-host ||
-|passenger_start_timeout|undef|[`PassengerStartTimeout`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStartTimeout)|server-config virutal-host htaccess directory ||
-|passenger_startup_file|undef|[`PassengerStartupFile`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStartupFile)|server-config virutal-host htaccess directory ||
+|passenger_spawn_method|undef|[`PassengerSpawnMethod`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerSpawnMethod)|server-config virtual-host ||
+|passenger_start_timeout|undef|[`PassengerStartTimeout`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStartTimeout)|server-config virtual-host htaccess directory ||
+|passenger_startup_file|undef|[`PassengerStartupFile`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStartupFile)|server-config virtual-host htaccess directory ||
 |passenger_stat_throttle_rate|undef|[`PassengerStatThrottleRate`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStatThrottleRate)|server-config ||
-|passenger_sticky_sessions|undef|[`PassengerStickySessions`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStickySessions)|server-config virutal-host htaccess directory ||
-|passenger_sticky_sessions_cookie_name|undef|[`PassengerStickySessionsCookieName`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStickySessionsCookieName)|server-config virutal-host htaccess directory ||
-|passenger_thread_count|undef|[`PassengerThreadCount`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerThreadCount)|server-config virutal-host htaccess directory ||
+|passenger_sticky_sessions|undef|[`PassengerStickySessions`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStickySessions)|server-config virtual-host htaccess directory ||
+|passenger_sticky_sessions_cookie_name|undef|[`PassengerStickySessionsCookieName`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerStickySessionsCookieName)|server-config virtual-host htaccess directory ||
+|passenger_thread_count|undef|[`PassengerThreadCount`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerThreadCount)|server-config virtual-host htaccess directory ||
 |passenger_use_global_queue|undef|PassengerUseGlobalQueue|server-config ||
-|passenger_user|undef|[`PassengerUser`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerUser)|server-config virutal-host directory ||
+|passenger_user|undef|[`PassengerUser`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerUser)|server-config virtual-host directory ||
 |passenger_user_switching|undef|[`PassengerUserSwitching`](https://www.phusionpassenger.com/library/config/apache/reference/#PassengerUserSwitching)|server-config ||
 |rack_auto_detect|undef|RackAutoDetect|server-config |These options have been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.|
 |rack_autodetect|undef|n/a|||
 |rack_base_uri|undef|RackBaseURI|server-config |Deprecated in 3.0.0 in favor of PassengerBaseURI.|
-|rack_env|undef|[`RackEnv`](https://www.phusionpassenger.com/library/config/apache/reference/#RackEnv)|server-config virutal-host htaccess directory ||
+|rack_env|undef|[`RackEnv`](https://www.phusionpassenger.com/library/config/apache/reference/#RackEnv)|server-config virtual-host htaccess directory ||
 |rails_allow_mod_rewrite|undef|RailsAllowModRewrite|server-config |This option doesn't do anything anymore in since version 4.0.0.|
 |rails_app_spawner_idle_time|undef|RailsAppSpawnerIdleTime|server-config |This option has been removed in version 4.0.0, and replaced with PassengerMaxPreloaderIdleTime.|
 |rails_auto_detect|undef|RailsAutoDetect|server-config |These options have been removed in version 4.0.0 as part of an optimization. You should use PassengerEnabled instead.|
 |rails_autodetect|undef|n/a|||
 |rails_base_uri|undef|RailsBaseURI|server-config |Deprecated in 3.0.0 in favor of PassengerBaseURI.|
 |rails_default_user|undef|RailsDefaultUser|server-config |Deprecated in 3.0.0 in favor of PassengerDefaultUser.|
-|rails_env|undef|[`RailsEnv`](https://www.phusionpassenger.com/library/config/apache/reference/#RailsEnv)|server-config virutal-host htaccess directory ||
+|rails_env|undef|[`RailsEnv`](https://www.phusionpassenger.com/library/config/apache/reference/#RailsEnv)|server-config virtual-host htaccess directory ||
 |rails_framework_spawner_idle_time|undef|RailsFrameworkSpawnerIdleTime|server-config |This option is no longer available in version 4.0.0. There is no alternative because framework spawning has been removed altogether. You should use smart spawning instead.|
 |rails_ruby|undef|RailsRuby|server-config |Deprecated in 3.0.0 in favor of PassengerRuby.|
 |rails_spawn_method|undef|RailsSpawnMethod|server-config |Deprecated in 3.0.0 in favor of PassengerSpawnMethod.|
@@ -2409,6 +2534,7 @@ Installs and configures [`mod_ldap`][], and allows you to modify the
 class { 'apache::mod::ldap':
   ldap_trusted_global_cert_file => '/etc/pki/tls/certs/ldap-trust.crt',
   ldap_trusted_global_cert_type => 'CA_DER',
+  ldap_trusted_mode             => 'TLS',
   ldap_shared_cache_size        => '500000',
   ldap_cache_entries            => '1024',
   ldap_cache_ttl                => '600',
@@ -2428,6 +2554,8 @@ class { 'apache::mod::ldap':
 * `ldap_trusted_global_cert_type`: Specifies the global trust certificate format.
 
   Default: 'CA_BASE64'.
+
+* `ldap_trusted_mode`: Specifies the SSL/TLS mode to be used when connecting to an LDAP server.
 
 * `ldap_shared_cache_size`: Specifies the size, in bytes, of the shared memory cache.
 
@@ -2457,7 +2585,7 @@ Installs and configures [`mod_negotiation`][].
 
 * `language_priority`: An [array][] of languages to set the `LanguagePriority` option of the module.
 
-  Default: ['en', 'ca', 'cs', 'da', 'de', 'el', 'eo', 'es', 'et', 'fr', 'he', 'hr', 'it', 'ja', 'ko', 'ltz', 'nl', 'nn', 'no', 'pl', 'pt', 'pt*BR', 'ru', 'sv', 'zh*CN', 'zh*TW']
+  Default: ['en', 'ca', 'cs', 'da', 'de', 'el', 'eo', 'es', 'et', 'fr', 'he', 'hr', 'it', 'ja', 'ko', 'ltz', 'nl', 'nn', 'no', 'pl', 'pt', 'pt-BR', 'ru', 'sv', 'zh-CN', 'zh-TW']
 
 ##### Class: `apache::mod::nss`
 
@@ -2577,9 +2705,9 @@ Installs and manages [`mod_proxy_balancer`][], which provides load balancing.
 
 * `manager_path`: The server location of the balancer manager.
 
-  Default: '/balancer*manager'.
+  Default: '/balancer-manager'.
 
-* `allow_from`: An [array][] of IPv4 or IPv6 addresses that can access `/balancer*manager`.
+* `allow_from`: An [array][] of IPv4 or IPv6 addresses that can access `/balancer-manager`.
 
   Default: ['127.0.0.1','::1'].
 
@@ -2605,6 +2733,14 @@ Default values for these parameters depend on your operating system. Most of thi
 
 **Note**: There is no official package available for `mod_proxy_html`, so you must make it available outside of the apache module.
 
+##### Class: `apache::mod::python`
+
+Installs and configures [`mod_python`][].
+
+**Parameters**
+
+* `loadfile_name`: Sets the name of the configuration file that is used to load the python module.
+
 ##### Class: `apache::mod::reqtimeout`
 
 Installs and configures [`mod_reqtimeout`][].
@@ -2627,7 +2763,7 @@ Installs the [Shibboleth](http://shibboleth.net/) Apache module `mod_shib`, whic
 
 This class installs and configures only the Apache components of a web application that consumes Shibboleth SSO identities. You can manage the Shibboleth configuration manually, with Puppet, or using a [Shibboleth Puppet Module](https://github.com/aethylred/puppet-shibboleth).
 
-**Note**: The shibboleth module isn't available on RH/CentOS without providing dependency packages provided by Shibboleth's repositories. See [http://wiki.aaf.edu.au/tech-info/sp-install-guide]()
+**Note**: The Shibboleth module isn't available on RH/CentOS without providing dependency packages provided by Shibboleth's repositories. See the [Shibboleth Service Provider Installation Guide](http://wiki.aaf.edu.au/tech-info/sp-install-guide).
 
 ##### Class: `apache::mod::ssl`
 
@@ -2640,6 +2776,8 @@ To use SSL with a virtual host, you must either set the [`default_ssl_vhost`][] 
 - `ssl_cryptodevice`: Default: 'builtin'.
 - `ssl_honorcipherorder`: Default: true.
 - `ssl_openssl_conf_cmd`: Default: undef.
+- `ssl_cert`: Default: undef.
+- `ssl_key`: Default: undef.
 - `ssl_options`: Default: ['StdEnvVars']
 - `ssl_pass_phrase_dialog`: Default: 'builtin'.
 - `ssl_protocol`: Default: ['all', '-SSLv2', '-SSLv3'].
@@ -2673,6 +2811,14 @@ To use SSL with a virtual host, you must either set the [`default_ssl_vhost`][] 
 
   Default: `undef`.
 
+* `ssl_cert`
+
+  Default: `undef`.
+
+* `ssl_key`
+
+  Default: `undef`.
+
 * `ssl_options`
 
   Default: ['StdEnvVars']
@@ -2683,7 +2829,7 @@ To use SSL with a virtual host, you must either set the [`default_ssl_vhost`][] 
 
 * `ssl_protocol`
 
-  Default: ['all', '*SSLv2', '*SSLv3'].
+  Default: ['all', '-SSLv2', '-SSLv3'].
 
 * `ssl_random_seed_bytes`
 
@@ -2718,6 +2864,24 @@ Installs [`mod_status`][] and uses the `status.conf.erb` template to generate it
 * `allow_from`: An [array][] of IPv4 or IPv6 addresses that can access `/server-status`.
 
   Default: ['127.0.0.1','::1'].
+
+* `requires`: A string, an [array][] or a [hash][], of IPs and/or names that can/can't access `/server-status`, using Apache v. >= 2.4 `mod_authz_host` directives (`require ip`, `require host`, etc.). This parameter should follow one of the structures below:
+
+  > Only used if Apache version >= 2.4
+
+  - `undef` - Uses `allow_from` and old directive syntax (`Allow from <List of IPs and/or names>`). Issues deprecation warning.
+  - String
+    - `''` or `'unmanaged'` - No auth directives (access controlled elsewhere)
+    - `'ip <List of IPs>'` - IPs/ranges allowed to access `/server-status`
+    - `'host <List of names>'` - Names/domains allowed to access `/server-status`
+    - `'all [granted|denied]'` - Allow / block everyone
+  - Array - Each item should be a string from those described above. Results in one directive per array item.
+  - Hash with structure below (shown as key => value, where keys are strings):
+    - `'requires'` => Array as above - Same effect as the array
+    - `'enforce'`  => String `'Any'`, `'All'` or `'None'` (optional) - Encloses all directives from `'requires'` key in a `<Require(Any|All|None)>` block
+
+  Default: 'ip 127.0.0.1 ::1'
+
 * `extended_status`: Determines whether to track extended status information for each request, via the [`ExtendedStatus`][] directive.
 
   Values: 'Off', 'On'.
@@ -2751,13 +2915,13 @@ Installs and configures Trustwave's [`mod_security`][]. It is enabled and runs b
 **Parameters**:
 
 * `activated_rules`: An [array][] of rules from the `modsec_crs_path` or absolute to activate via symlinks.
-* `allowed_methods`: A space*separated list of allowed HTTP methods.
+* `allowed_methods`: A space-separated list of allowed HTTP methods.
 
   Default: 'GET HEAD POST OPTIONS'.
 
-* `content_types`: A list of one or more allowed [MIME types][MIME `content*type`].
+* `content_types`: A list of one or more allowed [MIME types][MIME `content-type`].
 
-  Default: 'application/x*www*form*urlencoded|multipart/form*data|text/xml|application/xml|application/x*amf'.
+  Default: 'application/x-www-form-urlencoded|multipart/form-data|text/xml|application/xml|application/x-amf'.
 
 * `crs_package`: Names the package that installs CRS rules.
 
@@ -2776,13 +2940,13 @@ ${modsec\_dir}/activated\_rules.
 
   Default: `modsec_secruleengine` in [`apache::params`][].
 
-* `restricted_extensions`: A space*separated list of prohibited file extensions.
+* `restricted_extensions`: A space-sparated list of prohibited file extensions.
 
   Default: '.asa/ .asax/ .ascx/ .axd/ .backup/ .bak/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .com/ .config/ .conf/ .cs/ .csproj/ .csr/ .dat/ .db/ .dbf/ .dll/ .dos/ .htr/ .htw/ .ida/ .idc/ .idq/ .inc/ .ini/ .key/ .licx/ .lnk/ .log/ .mdb/ .old/ .pass/ .pdb/ .pol/ .printer/ .pwd/ .resources/ .resx/ .sql/ .sys/ .vb/ .vbs/ .vbproj/ .vsdisco/ .webinfo/ .xsd/ .xsx/'.
 
 * `restricted_headers`: A list of restricted headers separated by slashes and spaces.
 
-  Default: 'Proxy*Connection/ /Lock*Token/ /Content*Range/ /Translate/ /via/ /if/'.
+  Default: 'Proxy-Connection/ /Lock-Token/ /Content-Range/ /Translate/ /via/ /if/'.
 
 * `secdefaultaction`: Configures the Mode of Operation, Self-Contained ('deny') or Collaborative Detection ('pass'), for the OWASP ModSecurity Core Rule Set.
 
@@ -2800,7 +2964,7 @@ ${modsec\_dir}/activated\_rules.
 
   Defaults to the Apache log directory (Redhat: `/var/log/httpd`,  Debian: `/var/log/apache2`).
 
-* `audit_log_releavant_status`: Configures which response status code is to be considered relevant for the purpose of audit logging.
+* `audit_log_relevant_status`: Configures which response status code is to be considered relevant for the purpose of audit logging.
 
   Default: '^(?:5|4(?!04))'.
 
@@ -2874,7 +3038,7 @@ Enables Python support via [`mod_wsgi`][].
 
   Default: `undef`.
 
-* `wsgi_python_path`: Defines the [`WSGIPythonPath`][] directive, such as '/path/to/venv/site*packages'.
+* `wsgi_python_path`: Defines the [`WSGIPythonPath`][] directive, such as '/path/to/venv/site-packages'.
 
   Values: A string specifying a path.
 
@@ -2922,6 +3086,28 @@ Manages the Apache daemon.
 
 Attempts to automatically detect the Apache version based on the operating system.
 
+##### Red Hat Software Collections (SCL)
+
+Software Collections on CentOS/RHEL allow for newer Apache and PHP, amongst other packages.
+
+If `scl_httpd_version` is set, Apache Httpd will get installed from [Software Collections](https://www.softwarecollections.org/en/).
+
+If `scl_httpd_version` is set, `scl_php_version` also needs to be set, even if PHP is not going to be installed.
+
+The repository is not managed by this module yet. For CentOS you can enable the repo by installing the package `centos-release-scl-rh`.
+
+##### `scl_httpd_version`
+
+#### Version of httpd to install.
+
+Example: `2.4` for Apache 2.4.
+
+##### `scl_php_version`
+
+Version of PHP to use.
+
+Example: `7.1`
+
 ### Public defined types
 
 #### Defined type: `apache::balancer`
@@ -2941,6 +3127,12 @@ Sets the title of the balancer cluster and name of the `conf.d` file containing 
 Configures key-value pairs as [`ProxySet`][] lines. Values: a [hash][].
 
 Default: '{}'.
+
+##### `options`
+
+Specifies an [array][] of [options](https://httpd.apache.org/docs/current/mod/mod_proxy.html#balancermember) after the balancer URL, and accepts any key-value pairs available to [`ProxyPass`][].
+
+Default: [].
 
 ##### `collect_exported`
 
@@ -3325,6 +3517,28 @@ Sets the URL to use when validating a client-presented ticket in an HTTP query s
 
 Defaults to the value set by [`apache::mod::auth_cas`][].
 
+
+##### `comment`
+
+Adds comments to the header of the configuration file. Pass as string or an array of strings.
+
+Default: `undef`.
+
+For example:
+
+``` puppet
+comment => "Account number: 123B",
+```
+
+Or:
+
+``` puppet
+comment => [
+  "Customer: X",
+  "Frontend domain: x.example.org",
+]
+```
+
 ##### `custom_fragment`
 
 Passes a string of custom configuration directives to place at the end of the virtual host configuration.
@@ -3653,7 +3867,7 @@ Default is 'off'
 
 Specifies the location of the virtual host's logfiles.
 
-Default: '/var/log/<apache log location>/'.
+Default: `/var/log/<apache log location>/`.
 
 ##### `$logroot_ensure`
 
@@ -3921,6 +4135,10 @@ Sets [PassengerPreStart](https://www.phusionpassenger.com/library/config/apache/
 
 Sets [PassengerUser](https://www.phusionpassenger.com/library/config/apache/reference/#passengeruser), the running user for sandboxing applications.
 
+##### `passenger_group`
+
+Sets [PassengerGroup](https://www.phusionpassenger.com/library/config/apache/reference/#passengergroup), the running group for sandboxing applications.
+
 ##### `passenger_high_performance`
 
 Sets the [`PassengerHighPerformance`](https://www.phusionpassenger.com/library/config/apache/reference/#passengerhighperformance) parameter.
@@ -3945,11 +4163,16 @@ Default: `undef`.
 
 Sets the [`PassengerStartupFile`](https://www.phusionpassenger.com/library/config/apache/reference/#passengerstartupfile) path. This path is relative to the application root.
 
-##### `php_flags & values`
+##### `php_values & php_flags`
 
 Allows per-virtual host setting [`php_value`s or `php_flag`s](http://php.net/manual/en/configuration.changes.php). These flags or values can be overwritten by a user or an application.
 
 Default: '{}'.
+
+Within a vhost declaration:
+``` puppet
+  php_values    => [ 'include_path ".:/usr/local/example-app/include"' ],
+```
 
 ##### `php_admin_flags & values`
 
@@ -4083,7 +4306,7 @@ apache::vhost { 'site.name.fdqn':
   …
   redirectmatch_status => ['404','404'],
   redirectmatch_regexp => ['\.git(/.*|$)/','\.svn(/.*|$)'],
-  redirectmatch_dest => ['http://www.example.com/1','http://www.example.com/2'],
+  redirectmatch_dest => ['http://www.example.com/$1','http://www.example.com/$2'],
 }
 ```
 
@@ -4786,6 +5009,7 @@ to environment variables.
 - `mellon_sp_private_key_file`: Sets the [MellonSPPrivateKeyFile][`mod_auth_mellon`] directive for the private key location of the service provider.
 - `mellon_sp_cert_file`: Sets the [MellonSPCertFile][`mod_auth_mellon`] directive for the public key location of the service provider.
 - `mellon_user`: Sets the [MellonUser][`mod_auth_mellon`] attribute to use for the username.
+- `mellon_session_length`: Sets the [MellonSessionLength][`mod_auth_mellon`] attribute.
 
 ##### `options`
 
@@ -4987,6 +5211,10 @@ apache::vhost { 'secure.example.net':
 
 When set to 'On', this turns on the use of request headers to publish attributes to applications. Values for this key is 'On' or 'Off', and the default value is 'Off'. This key is disabled if `apache::mod::shib` is not defined. Check the [`mod_shib` documentation](https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPApacheConfig#NativeSPApacheConfig-Server/VirtualHostOptions) for more details.
 
+##### `shib_compat_valid_user`
+
+Default is Off, matching the behavior prior to this command's existence. Addresses a conflict when using Shibboleth in conjunction with other auth/auth modules by restoring "standard" Apache behavior when processing the "valid-user" and "user" Require rules. See the [`mod_shib`documentation](https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPApacheConfig#NativeSPApacheConfig-Server/VirtualHostOptions), and [NativeSPhtaccess](https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPhtaccess) topic for more details. This key is disabled if `apache::mod::shib` is not defined.
+
 ##### `ssl_options`
 
 String or list of [SSLOptions](https://httpd.apache.org/docs/current/mod/mod_ssl.html#ssloptions), which configure SSL engine run-time options. This handler takes precedence over SSLOptions set in the parent block of the virtual host.
@@ -5175,6 +5403,12 @@ A depth of 0 means that only self-signed remote server certificates are accepted
 
 Default: `undef`
 
+##### `ssl_proxy_cipher_suite`
+
+Sets the [SSLProxyCipherSuite](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslproxyciphersuite) directive, which controls cipher suites supported for ssl proxy traffic.
+
+Default: `undef`
+
 ##### `ssl_proxy_ca_cert`
 
 Sets the [SSLProxyCACertificateFile](https://httpd.apache.org/docs/current/mod/mod_ssl.html#sslproxycacertificatefile) directive, which specifies an all-in-one file where you can assemble the Certificates of Certification Authorities (CA) whose remote servers you deal with. These are used for Remote Server Authentication. This file should be a concatenation of the PEM-encoded certificate files in order of preference.
@@ -5254,7 +5488,7 @@ Specifies whether or not to use [SSLProxyEngine](https://httpd.apache.org/docs/c
 
 Boolean.
 
-Default: `true`.
+Default: `false`.
 
 ##### `ssl_stapling`
 
@@ -5413,18 +5647,10 @@ Hashes a password in a format suitable for htpasswd files read by apache.
 Currently uses SHA-hashes, because although this format is considered insecure, its the
 most secure format supported by the most platforms.
 
+<a id="limitations"></a>
 ## Limitations
 
-### General
-
-This module is CI tested against both [open source Puppet][] and [Puppet Enterprise][] on:
-
-- CentOS 5 and 6
-- Ubuntu 12.04 and 14.04
-- Debian 7
-- RHEL 5, 6, and 7
-
-This module also provides functions for other distributions and operating systems, such as FreeBSD, Gentoo, and Amazon Linux, but is not formally tested on them and are subject to regressions.
+For an extensive list of supported operating systems, see [metadata.json](https://github.com/puppetlabs/puppetlabs-apache/blob/master/metadata.json)
 
 ### FreeBSD
 
@@ -5505,6 +5731,7 @@ The [`apache::vhost::WSGIImportScript`][] parameter creates a statement inside t
 ### Ubuntu 16.04
 The [`apache::mod::suphp`][] class is untested since repositories are missing compatible packages.
 
+<a id="development"></a> 
 ## Development
 
 ### Contributing

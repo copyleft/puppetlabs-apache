@@ -40,13 +40,14 @@ class apache (
   $serveradmin                                                   = 'root@localhost',
   Enum['On', 'Off', 'on', 'off'] $sendfile                       = 'On',
   $error_documents                                               = false,
-  $timeout                                                       = '120',
+  $timeout                                                       = '60',
   $httpd_dir                                                     = $::apache::params::httpd_dir,
   $server_root                                                   = $::apache::params::server_root,
   $conf_dir                                                      = $::apache::params::conf_dir,
   $confd_dir                                                     = $::apache::params::confd_dir,
   $vhost_dir                                                     = $::apache::params::vhost_dir,
   $vhost_enable_dir                                              = $::apache::params::vhost_enable_dir,
+  $mod_libs                                                      = $::apache::params::mod_libs,
   $mod_packages                                                  = $::apache::params::mod_packages,
   $vhost_include_pattern                                         = $::apache::params::vhost_include_pattern,
   $mod_dir                                                       = $::apache::params::mod_dir,
@@ -67,6 +68,7 @@ class apache (
   $keepalive_timeout                                             = $::apache::params::keepalive_timeout,
   $max_keepalive_requests                                        = $::apache::params::max_keepalive_requests,
   $limitreqfieldsize                                             = '8190',
+  $limitreqfields                                                = '100',
   $logroot                                                       = $::apache::params::logroot,
   $logroot_mode                                                  = $::apache::params::logroot_mode,
   $log_level                                                     = $::apache::params::log_level,
@@ -75,11 +77,13 @@ class apache (
   $ports_file                                                    = $::apache::params::ports_file,
   $docroot                                                       = $::apache::params::docroot,
   $apache_version                                                = $::apache::version::default,
-  $server_tokens                                                 = 'OS',
+  $server_tokens                                                 = 'Prod',
   $server_signature                                              = 'On',
   $trace_enable                                                  = 'On',
   Optional[Enum['on', 'off', 'nodecode']] $allow_encoded_slashes = undef,
   $file_e_tag                                                    = undef,
+  Optional[Enum['On', 'on', 'Off', 'off', 'DNS', 'dns']]
+    $use_canonical_name                                          = undef,
   $package_ensure                                                = 'installed',
   Boolean $use_optional_includes                                 = $::apache::params::use_optional_includes,
   $use_systemd                                                   = $::apache::params::use_systemd,
@@ -147,7 +151,7 @@ class apache (
     }
   }
 
-  validate_apache_log_level($log_level)
+  apache::validate_apache_log_level($log_level)
 
   class { '::apache::service':
     service_name    => $service_name,

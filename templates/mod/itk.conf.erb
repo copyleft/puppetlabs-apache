@@ -13,4 +13,7 @@
   LimitGIDRange <%= @limitgidrange %>
   <%- end -%>
 <%- end -%>
+  <%- if (not @enablecapabilities.nil?) && (scope.function_versioncmp([@_apache_version, '2.4']) >= 0) -%>
+  EnableCapabilities  <%= scope.function_bool2httpd([@enablecapabilities]) %>
+  <%- end -%>
 </IfModule>
