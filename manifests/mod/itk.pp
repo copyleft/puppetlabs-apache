@@ -33,8 +33,8 @@ class apache::mod::itk (
   Integer $serverlimit                                   = 256,
   Integer $maxclients                                    = 256,
   Integer $maxrequestsperchild                           = 4000,
-  String  $limituidrange                                 = undef,
-  String  $limitgidrange                                 = undef,
+  Optional[String] $limituidrange                        = undef,
+  Optional[String] $limitgidrange                        = undef,
   Optional[Variant[Boolean, String]] $enablecapabilities = undef,
 ) {
   include apache
