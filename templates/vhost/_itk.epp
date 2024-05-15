@@ -17,13 +17,5 @@
      <%- if $itk["nice"] { -%>
      NiceValue <%= $itk["nice"] %>
      <%- } -%>
-     <%- if $kernelversion >= '3.5.0' { -%>
-       <%- if $itk["limituidrange"] { -%>
-     LimitUIDRange <%= $itk["limituidrange"] %>
-       <%- } -%>
-       <%- if $itk["limitgidrange"] { -%>
-     LimitGIDRange <%= $itk["limitgidrange"] %>
-       <%- } -%>
-     <%- } -%>
   </IfModule>
 <% } -%>

@@ -5,6 +5,14 @@
   ServerLimit         <%= $serverlimit %>
   MaxClients          <%= $maxclients %>
   MaxRequestsPerChild <%= $maxrequestsperchild %>
+  <%- if $kernelversion >= '3.5.0' { -%>
+    <%- if $itk["limituidrange"] { -%>
+  LimitUIDRange <%= $itk["limituidrange"] %>
+    <%- } -%>
+    <%- if $itk["limitgidrange"] { -%>
+  LimitGIDRange <%= $itk["limitgidrange"] %>
+    <%- } -%>
+  <%- } -%>
   <%- if $enablecapabilities != undef { -%>
   EnableCapabilities  <%= apache::bool2httpd($enablecapabilities) %>
   <%- } -%>
