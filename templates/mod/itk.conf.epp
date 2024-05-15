@@ -6,11 +6,11 @@
   MaxClients          <%= $maxclients %>
   MaxRequestsPerChild <%= $maxrequestsperchild %>
   <%- if $kernelversion >= '3.5.0' { -%>
-    <%- if $itk["limituidrange"] { -%>
-  LimitUIDRange <%= $itk["limituidrange"] %>
+    <%- if $limituidrange { -%>
+  LimitUIDRange <%= $limituidrange %>
     <%- } -%>
-    <%- if $itk["limitgidrange"] { -%>
-  LimitGIDRange <%= $itk["limitgidrange"] %>
+    <%- if $limitgidrange { -%>
+  LimitGIDRange <%= $limitgidrange %>
     <%- } -%>
   <%- } -%>
   <%- if $enablecapabilities != undef { -%>
